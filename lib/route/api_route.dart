@@ -8,6 +8,7 @@ class ApiRoute implements Route {
     /// Base RoutePrefix
     Router.basePrefix('api');
     Router.post("/register", authController.register);
+    Router.post("/login", authController.login);
     
   }
 }
