@@ -1,36 +1,50 @@
 import 'dart:io';
 
 import 'package:vania/vania.dart';
+import 'package:vania_furniture_api/app/models/products.dart';
 
 class HomeController extends Controller {
+  //home page product list
+ Future<Response> productList(Request request) async {
+    try{
+    final categoryId = request.input("id");
+    //in this case -1 means get all the products
 
-  Future<Response> index() async {
-    return Response.json({'message': 'Hello coder', 'code':200});
+    if(categoryId == "-1"){
+      final productList = await Products().query().get();
+      return Response.json({
+        "code":200,
+        "data":productList,
+        "msg":"Success getting all products list"
+      },200);
+    }
+
+    final specificProductList = await Products().query().where("category_id", "=", categoryId).get();
+
+    if(specificProductList.isNotEmpty){
+      return Response.json({
+        "code":200,
+        "data":specificProductList,
+        "msg":"Success getting a specific product list"
+      }, 200);
+    }else{
+      return Response.json({
+        "code":204,
+        "data":"",
+        "msg":"Nothing found in the database"
+      }, 204);
+    }
+
+    }catch(e){
+    return Response.json({
+        "code":500,
+        "data":"",
+        "msg":"Error getting data"
+      },500);
+    }
   }
 
-  Future<Response> create() async {
-    return Response.json({});
-  }
 
-  Future<Response> store(Request request) async {
-    return Response.json({});
-  }
-
-  Future<Response> show(int id) async {
-    return Response.json({});
-  }
-
-  Future<Response> edit(int id) async {
-    return Response.json({});
-  }
-
-  Future<Response> update(Request request, int id) async {
-    return Response.json({});
-  }
-
-  Future<Response> destroy(int id) async {
-    return Response.json({});
-  }
 }
 
 final HomeController homeController = HomeController();
