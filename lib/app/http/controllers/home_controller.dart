@@ -44,7 +44,50 @@ class HomeController extends Controller {
     }
   }
 
+    //home page product list
+ Future<Response> detail(Request request) async {
+    try{
+    final id = request.input("id");
+    //in this case -1 means get all the products
 
+    if(id==null){
+       return Response.json({
+        "code":401,
+        "data":"",
+        "msg":"Not authorized"
+      }, 401);
+    }
+    
+
+    final productDetail = await Products().query().where("id", "=", id).first();
+
+    if(productDetail==null){
+      return Response.json({
+        "code":204,
+        "data":"",
+        "msg":"Product not found"
+      }, 204);
+    }else{
+
+      return Response.json({
+        "code":200,
+        "data":productDetail,
+        "msg":"Product detail found"
+      }, 200);
+
+    }
+
+    }catch(e){
+
+    return Response.json({
+        "code":500,
+        "data":"",
+        "msg":"Error getting data"
+      },500);
+
+    }
+  }
+ 
 }
 
 final HomeController homeController = HomeController();
