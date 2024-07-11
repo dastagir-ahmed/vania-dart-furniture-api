@@ -44,7 +44,7 @@ class HomeController extends Controller {
     }
   }
 
-    //home page product list
+    //home page product detail
  Future<Response> detail(Request request) async {
     try{
     final id = request.input("id");
@@ -76,6 +76,50 @@ class HomeController extends Controller {
       }, 200);
 
     }
+
+    }catch(e){
+
+    return Response.json({
+        "code":500,
+        "data":"",
+        "msg":"Error getting data"
+      },500);
+
+    }
+  }
+
+      //home page search
+ Future<Response> search(Request request) async {
+    try{
+    final title = request.input("title");
+    //in this case -1 means get all the products
+
+    if(title==null){
+       return Response.json({
+        "code":401,
+        "data":"",
+        "msg":"Not authorized"
+      }, 401);
+    }
+    
+
+   if(title=="init"){
+     final searchDefault = await Products().query().limit(5).get();
+      return Response.json({
+        "code":200,
+        "data":searchDefault,
+        "msg":"Default search result"
+      }, 200);
+   }
+
+
+    final searchResult = await Products().query().where("title", "like", "%$title").get();
+    return Response.json({
+        "code":200,
+        "data":searchResult,
+        "msg":"Custom search result"
+      }, 200);
+
 
     }catch(e){
 
