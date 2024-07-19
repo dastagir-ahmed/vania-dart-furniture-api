@@ -3,10 +3,12 @@ import 'dart:convert';
 import 'package:decimal/decimal.dart';
 import 'package:stripe/stripe.dart';
 import 'package:vania/vania.dart';
+import 'package:vania_furniture_api/app/models/order.dart';
+import 'package:vania_furniture_api/app/models/order_detail.dart';
 import 'package:vania_furniture_api/app/models/product_bin.dart';
 
 class OrderController extends Controller {
-  placeOrder(Request request) {
+  placeOrder(Request request) async {
     try {
       final userId = Auth().id();
 
@@ -56,6 +58,27 @@ class OrderController extends Controller {
                 ),
                 quantity:element.cartNumber
                 ));
+
+                await OrderDetail().query().insert({
+                  "user_id":userId,
+                  "amount":amountSum,
+                  "order_num":orderNum,
+                  "product_id":element.id,
+                  "title":element.title,
+                  "num":element.cartNumber,
+                  "price":element.price,
+                  "pic":element.thumbnail,
+                  "created_at":DateTime.now(),
+                  "updated_at":DateTime.now
+                });
+
+                await Order().query().insert({
+                  "user_id":userId,
+                  "amount_total":amountTotal.toStringAsFixed(2),
+                  "order_num":orderNum,
+                   "created_at":DateTime.now(),
+                  "updated_at":DateTime.now
+                });
       }
     } catch (e) {
       return Response.json({
