@@ -54,32 +54,48 @@ class OrderController extends Controller {
             priceData: PriceData(
                 currency: "usd",
                 productData: ProductData(name: "${element.title}"),
-                unitAmount: priceInt
-                ),
-                quantity:element.cartNumber
-                ));
+                unitAmount: priceInt),
+            quantity: element.cartNumber));
 
-                await OrderDetail().query().insert({
-                  "user_id":userId,
-                  "amount":amountSum,
-                  "order_num":orderNum,
-                  "product_id":element.id,
-                  "title":element.title,
-                  "num":element.cartNumber,
-                  "price":element.price,
-                  "pic":element.thumbnail,
-                  "created_at":DateTime.now(),
-                  "updated_at":DateTime.now
-                });
-
-                await Order().query().insert({
-                  "user_id":userId,
-                  "amount_total":amountTotal.toStringAsFixed(2),
-                  "order_num":orderNum,
-                   "created_at":DateTime.now(),
-                  "updated_at":DateTime.now
-                });
+        await OrderDetail().query().insert({
+          "user_id": userId,
+          "amount": amountSum,
+          "order_num": orderNum,
+          "product_id": element.id,
+          "title": element.title,
+          "num": element.cartNumber,
+          "price": element.price,
+          "pic": element.thumbnail,
+          "created_at": DateTime.now(),
+          "updated_at": DateTime.now
+        });
       }
+
+      await Order().query().insert({
+        "user_id": userId,
+        "amount_total": amountTotal.toStringAsFixed(2),
+        "order_num": orderNum,
+        "created_at": DateTime.now(),
+        "updated_at": DateTime.now
+      });
+
+      final stripe = Stripe(
+          "pk_test_51NDjUSDcNOyMHK5HOMCbBl0aRE5xqhvIkxlH327YMAW802xqAWi3kWkk8vrzGAw4Da2cRaCvAPCc5nmlwgn0d7WB00BtBDHUtC");
+      final checkoutData = CreateCheckoutSessionRequest(
+          successUrl: env('APP_URL') + '/success.html',
+          cancelUrl: env('APP_URL') + '/cancel.html',
+          mode: SessionMode.payment,
+          clientReferenceId: "${orderNum}",
+          paymentMethodTypes: [PaymentMethodType.card],
+          lineItems: lineItems);
+      final checkoutSession = await stripe.checkoutSession.create(checkoutData);
+      
+      return Response.json({
+        "code":200,
+        "data":checkoutSession.id,
+        "msg":"Payment success"
+      });
+
     } catch (e) {
       return Response.json({
         "code": 500,
