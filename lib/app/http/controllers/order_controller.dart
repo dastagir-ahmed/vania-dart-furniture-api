@@ -14,14 +14,15 @@ class OrderController extends Controller {
 
       //json format data "id":1, "address":"shanghai"
       final data = request.input("order");
-
+   
       if (data == null) {
         return Response.json(
             {"code": 401, "data": "", "msg": "You are not authorized"}, 401);
       }
+           
       //Map format data id:1, address:shanghai
-      final cartList = jsonDecode(data);
-
+     // final cartList = jsonDecode(data);
+      final cartList = data;
       var dataList = <ProductBin>[];
       for (var element in cartList) {
         dataList.add(ProductBin.fromJson(element));
@@ -67,8 +68,10 @@ class OrderController extends Controller {
           "price": element.price,
           "pic": element.thumbnail,
           "created_at": DateTime.now(),
-          "updated_at": DateTime.now
+          "updated_at": DateTime.now()
         });
+
+         
       }
 
       await Order().query().insert({
@@ -76,11 +79,11 @@ class OrderController extends Controller {
         "amount_total": amountTotal.toStringAsFixed(2),
         "order_num": orderNum,
         "created_at": DateTime.now(),
-        "updated_at": DateTime.now
+        "updated_at": DateTime.now()
       });
 
       final stripe = Stripe(
-          "pk_test_51NDjUSDcNOyMHK5HOMCbBl0aRE5xqhvIkxlH327YMAW802xqAWi3kWkk8vrzGAw4Da2cRaCvAPCc5nmlwgn0d7WB00BtBDHUtC");
+          "sk_test_51NDjUSDcNOyMHK5HXM82Vp9SmGNrUbu4wTpn4KsvytjoVxnJXo6243K262SqdHHypMIloirm1xSVEnqW0edTSH1N00h9q3RWf3");
       final checkoutData = CreateCheckoutSessionRequest(
           successUrl: env('APP_URL') + '/success.html',
           cancelUrl: env('APP_URL') + '/cancel.html',
@@ -100,7 +103,7 @@ class OrderController extends Controller {
       return Response.json({
         "code": 500,
         "data": "",
-        "msg": "Server side error during placing order"
+        "msg": e.toString()
       }, 500);
     }
   }
