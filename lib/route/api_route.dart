@@ -14,6 +14,7 @@ class ApiRoute implements Route {
     Router.post("/register", authController.register);
     Router.post("/login", authController.login);
     Router.put("/update_password", authController.updatePassword);
+    Router.post("/webhook", orderController.webhook);
 
     Router.group((){
       //products

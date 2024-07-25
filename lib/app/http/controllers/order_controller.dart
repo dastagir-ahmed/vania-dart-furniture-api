@@ -107,6 +107,19 @@ class OrderController extends Controller {
       }, 500);
     }
   }
+
+  Future<Response> webhook(Request request){
+
+    final event = request.all();
+    if(event['type']=='checkout.session.completed'){
+      final session = event['data']['object'];
+      final orderId = session['metadata']['order_id'];
+      Order().query().where("order_num", orderId).update({"status":1});
+      return Response.json("Payment success");
+    }
+    return Response.json("Unknown events");
+
+  }
 }
 
 final OrderController orderController = OrderController();
