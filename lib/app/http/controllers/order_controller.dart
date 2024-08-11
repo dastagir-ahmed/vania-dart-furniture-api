@@ -31,11 +31,11 @@ class OrderController extends Controller {
       final orderNum = DateTime.now().millisecondsSinceEpoch;
       double amountTotal = 0;
 
-      final String apiKey = "stripe secret key";
+      final String apiKey = "sk_test_51NDjUSDcNOyMHK5HXM82Vp9SmGNrUbu4wTpn4KsvytjoVxnJXo6243K262SqdHHypMIloirm1xSVEnqW0edTSH1N00h9q3RWf3";
       final Uri url = Uri.https('api.stripe.com', '/v1/checkout/sessions');
 
       final Map<String, String> body = {
-        'payment_methods_types[]': 'card',
+        'payment_method_types[]': 'card',
         'mode': 'payment',
         'success_url': env('APP_URL') + '/success.html',
         'cancel_url': env('APP_URL') + '/cancel.html',
@@ -57,7 +57,7 @@ class OrderController extends Controller {
         body.addAll({
           'line_items[$i][price_data][currency]': 'usd',
           'line_items[$i][price_data][product_data][name]': '${element.title}',
-          'line_items[$i][price_data][unit_price]': priceInt.toString(),
+          'line_items[$i][price_data][unit_amount]': priceInt.toString(),
           'line_items[$i][quantity]': element.cartNumber.toString(),
         });
 
@@ -92,6 +92,7 @@ class OrderController extends Controller {
       if(response.statusCode == 200){
         final session = json.decode(response.body);
         print('Checkout session url: ${session['url']}');
+        print('Checkout session id: ${session['id']}');
         return Response.json({
           "code":200,
           "data":session['id'],
@@ -111,22 +112,22 @@ class OrderController extends Controller {
       return Response.json({"code": 500, "data": "", "msg": e.toString()}, 500);
     }
   }
-
-  Future<Response> webhook(Request request) {
-    //print("0");
+  //app-> post 
+  //app-> get
+  //webook
+  //app-> third party server -> register a hook (webhook)
+  //there's a session
+  //store data info
+  //go back to stripe
+  Future<Response> webhook(Request request)async{
     final event = request.all();
-    //print("1 ${event}");
-    print(event);
-    if (event['type'] == 'checkout.session.completed') {
-      print("2");
+    if(event['type']=='checkout.session.completed'){
       final session = event['data']['object'];
       final orderId = session['metadata']['order_id'];
-      Order().query().where("order_num", orderId).update({"status": 1});
-      print("3");
-      return Response.json("Payment success");
+      print("Checkout session completed for order ID: $orderId");
+      Order().query().where('order_num', orderId).update({'status':1});
     }
-    print("4");
-    return Response.json("Unknown events");
+    return Response.json('Event received');
   }
 }
 
