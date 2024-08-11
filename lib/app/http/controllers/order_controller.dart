@@ -31,7 +31,8 @@ class OrderController extends Controller {
       final orderNum = DateTime.now().millisecondsSinceEpoch;
       double amountTotal = 0;
 
-      final String apiKey = "sk_test_51NDjUSDcNOyMHK5HXM82Vp9SmGNrUbu4wTpn4KsvytjoVxnJXo6243K262SqdHHypMIloirm1xSVEnqW0edTSH1N00h9q3RWf3";
+      final String apiKey =
+          "sk_test_51NDjUSDcNOyMHK5HXM82Vp9SmGNrUbu4wTpn4KsvytjoVxnJXo6243K262SqdHHypMIloirm1xSVEnqW0edTSH1N00h9q3RWf3";
       final Uri url = Uri.https('api.stripe.com', '/v1/checkout/sessions');
 
       final Map<String, String> body = {
@@ -83,51 +84,110 @@ class OrderController extends Controller {
         "updated_at": DateTime.now(),
       });
 
-      final response = await http.post(url,headers: {
-        'Authorization': 'Bearer $apiKey',
-        'Content-Type': 'application/x-www-form-urlencoded'
-      }, body: body
-      );
+      final response = await http.post(url,
+          headers: {
+            'Authorization': 'Bearer $apiKey',
+            'Content-Type': 'application/x-www-form-urlencoded'
+          },
+          body: body);
 
-      if(response.statusCode == 200){
+      if (response.statusCode == 200) {
         final session = json.decode(response.body);
         print('Checkout session url: ${session['url']}');
         print('Checkout session id: ${session['id']}');
-        return Response.json({
-          "code":200,
-          "data":session['id'],
-          "msg":"Payment successfull"
-        });
-      }else{
+        return Response.json(
+            {"code": 200, "data": session['id'], "msg": "Payment successfull"});
+      } else {
         print('Checkout session failed');
-        return Response.json({
-          "code":response.statusCode,
-          "data":"",
-          "msg":"Payment successfull"
-        },response.statusCode,);
+        return Response.json(
+          {
+            "code": response.statusCode,
+            "data": "",
+            "msg": "Payment successfull"
+          },
+          response.statusCode,
+        );
       }
 
-     // return Response.json({"code": 200, "data": "", "msg": "Payment success"});
+      // return Response.json({"code": 200, "data": "", "msg": "Payment success"});
     } catch (e) {
       return Response.json({"code": 500, "data": "", "msg": e.toString()}, 500);
     }
   }
-  //app-> post 
+
+  //app-> post
   //app-> get
   //webook
   //app-> third party server -> register a hook (webhook)
   //there's a session
   //store data info
   //go back to stripe
-  Future<Response> webhook(Request request)async{
+  Future<Response> webhook(Request request) async {
     final event = request.all();
-    if(event['type']=='checkout.session.completed'){
+    if (event['type'] == 'checkout.session.completed') {
       final session = event['data']['object'];
       final orderId = session['metadata']['order_id'];
       print("Checkout session completed for order ID: $orderId");
-      Order().query().where('order_num', orderId).update({'status':1});
+      Order().query().where('order_num', orderId).update({'status': 1});
     }
     return Response.json('Event received');
+  }
+
+  Future<Response> getOrderList(Request request) async {
+    final userId = Auth().id();
+    final status = request.input('status');
+
+    if (status == "canceled") {
+      final orderList = await Order()
+          .query()
+          .where('user_id', "=", userId)
+          .where("status", "=", 3)
+          .get();
+
+      return Response.json({
+        "code": 200,
+        "data": orderList,
+        "msg": "Success returning the cancel order list"
+      }, 200);
+    } else if (status == "delivered") {
+      final orderList = await Order()
+          .query()
+          .where('user_id', "=", userId)
+          .where("status", "=", 2)
+          .get();
+
+      return Response.json({
+        "code": 200,
+        "data": orderList,
+        "msg": "Success returning the delivered order list"
+      }, 200);
+    } else if (status == "paid") {
+      final orderList =
+          await Order().query().where('user_id', "=", userId).where("status","=",1).get();
+
+      return Response.json({
+        "code": 200,
+        "data": orderList,
+        "msg": "Success returning the order list"
+      }, 200);
+    } else if (status == "all") {
+      final orderList =
+          await Order().query().where('user_id', "=", userId).get();
+
+      return Response.json({
+        "code": 200,
+        "data": orderList,
+        "msg": "Success returning the order list"
+      }, 200);
+    }else{
+
+        return Response.json({
+        "code": 403,
+        "data": [],
+        "msg": "No matching found"
+      }, 403);
+    }
+
   }
 }
 
