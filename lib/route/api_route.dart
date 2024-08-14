@@ -26,9 +26,14 @@ class ApiRoute implements Route {
       Router.post("/add_wishlist", profileController.addWishList);
       Router.post("/my_wishlist", profileController.myWishList);
 
+      //profile 
+      Router.post("/get_profile", profileController.getProfile);
+      Router.post("/edit_profile", profileController.editProfile);
+      Router.post("/edit_password",profileController.editPassword);
       //payment section
       Router.post("/place_order", orderController.placeOrder);
       Router.post("/get_order_list", orderController.getOrderList);
+      Router.post("/get_order_detail", orderController.getOrderDetail);
     }, middleware: [AuthenticateMiddleware()]);
     
   }

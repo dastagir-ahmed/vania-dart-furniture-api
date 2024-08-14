@@ -1,5 +1,6 @@
 import 'package:vania/vania.dart';
 import 'package:vania_furniture_api/app/models/wishlist.dart';
+import 'package:vania_furniture_api/app/models/user.dart';
 
 class ProfileController extends Controller {
   Future<Response> addWishList(Request request) async {
@@ -63,10 +64,75 @@ class ProfileController extends Controller {
           .get();
 
       return Response.json(
-          {"code": 200, "data": wishList, "msg": "Returned  wishlist"}, 500);
+          {"code": 200, "data": wishList, "msg": "Returned  wishlist"}, 200);
     } catch (e) {
       return Response.json(
           {"code": 500, "data": "", "msg": "Could not return a wishlist"}, 500);
+    }
+  }
+
+  Future<Response> getProfile(Request request)async{
+    try{
+      final userId = Auth().id();
+      final user = await User().query().where("id","=", userId).first();
+      return Response.json(
+          {"code": 200, "data": user, "msg": "Returned  user"}, 200);
+    }catch(e) {
+      return Response.json(
+          {"code": 500, "data": "", "msg": "Server error"}, 500);
+    }
+  }
+
+    Future<Response> editProfile(Request request)async{
+    try{
+      final userId = Auth().id();
+      final name = request.input("name");
+      final birthday = request.input("birthday");
+      final gender = request.input("gender");
+      final phone = request.input("phone");
+      final description = request.input("description");
+
+      await User().query().where("id","=", userId).update({
+          "name":name,
+          "birthday":birthday,
+          "gender":gender,
+          "phone":phone,
+          "description":description
+      });
+
+      return Response.json(
+          {"code": 200, "data": "", "msg": "Update success"}, 200);
+    }catch(e) {
+      return Response.json(
+          {"code": 500, "data": "", "msg": "Server error"}, 500);
+    }
+  }
+
+      Future<Response> editPassword(Request request)async{
+    try{
+      final userId = Auth().id();
+
+      final password = request.input("password");
+      final repassword = request.input("repassword");
+
+      if(password != repassword){
+        return Response.json({
+          "code":400,
+          "data":"",
+          "msg": "Invalid password"
+        },400);
+      }
+
+      User().query().where("id", "=", userId).update({
+        "password": Hash().make(password)
+      });
+      
+
+      return Response.json(
+          {"code": 200, "data": "", "msg": "Update success"}, 200);
+    }catch(e) {
+      return Response.json(
+          {"code": 500, "data": "", "msg": "Server error"}, 500);
     }
   }
 }

@@ -189,6 +189,30 @@ class OrderController extends Controller {
     }
 
   }
+
+ Future<Response> getOrderDetail(Request request)async{
+    final userId = Auth().id();
+    final orderNum = request.input('orderNum');
+    try{
+    final detail = await OrderDetail().
+                    query().
+                    where("user_id", "=", userId).
+                    where("order_num", "=", orderNum).
+                    get();
+
+    return Response.json({
+      "code":200,
+      "data":detail,
+      "msg":"Got the order detail"
+    },200);
+    }catch(e){
+      return Response.json({
+      "code":500,
+      "data":"",
+      "msg":"Could not fetch the order detail"
+    },500);
+    }
+  }
 }
 
 final OrderController orderController = OrderController();
